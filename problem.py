@@ -2,7 +2,25 @@ import requests
 from bs4 import BeautifulSoup
 class Calculate_Toc:
     def __init__(self,entries_url):
-        response = requests.get(entries_url)
+        print("Invite Link : ",entries_url)
+        lnk=entries_url.split("/")
+        #print(lnk)
+        change=lnk[5].split(".")
+        change[0]="fields"
+        #print(change)
+        lnk[5]=change[0]+"."+change[1]
+        #print(lnk)
+        link=""
+        count=1
+        for item in lnk:
+            if count<len(lnk):
+                #print(count,len(lnk))
+                link=link+item+"/"
+                count=count+1
+            else:
+                link=link+item
+        print("Entries Link : ",link)
+        response = requests.get(link)
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
             paragraphs = soup.find_all('a')
@@ -10,10 +28,10 @@ class Calculate_Toc:
                 txt=p.get_text(strip=True)
                 if txt=="Novice Parli":
                     self.novice_url="https://tabroom.com"+p.get("href")
-                    print(self.novice_url)
+                    print("Novice Entries Link : ",self.novice_url)
                 elif txt=="Open Parli":
                     self.open_url="https://tabroom.com"+p.get("href")
-                    print(self.open_url)
+                    print("Open Entries Link : ", self.open_url)
                 else:
                    continue
         else:
@@ -69,7 +87,13 @@ class Calculate_Toc:
                 else :
                     print("No data found")
                     break
-url="https://www.tabroom.com/index/tourn/fields.mhtml?tourn_id=30494"
+url="https://www.tabroom.com/index/tourn/index.mhtml?tourn_id=30494"
 #Url for NPDL NATIONALS AND NOVICE NATIONALS
 check=Calculate_Toc(url)
 print(check.get_toc_points())
+
+
+
+
+
+
