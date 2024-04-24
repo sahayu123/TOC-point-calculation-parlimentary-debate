@@ -19,6 +19,8 @@ class Calculate_Toc:
                 count=count+1
             else:
                 link=link+item
+        self.novice_url=None
+        self.open_url=None
         print("Entries Link : ",link)
         response = requests.get(link)
         if response.status_code == 200:
@@ -26,10 +28,10 @@ class Calculate_Toc:
             paragraphs = soup.find_all('a')
             for p in paragraphs:
                 txt=p.get_text(strip=True)
-                if txt=="Novice Parli":
+                if txt in ["Novice Parli", "Parliamentary Novice", "Novice Parliamentary", "Parli Novice"]:
                     self.novice_url="https://tabroom.com"+p.get("href")
                     print("Novice Entries Link : ",self.novice_url)
-                elif txt=="Open Parli":
+                elif txt in ["Open Parli", "Parliamentary Open", "Open Parliamentary", "Parli Open"]:
                     self.open_url="https://tabroom.com"+p.get("href")
                     print("Open Entries Link : ", self.open_url)
                 else:
@@ -59,38 +61,45 @@ class Calculate_Toc:
         (219): (35,29,25,21,17,13,9)        
     }
     def tabroom_get_entries(self,url):
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            paragraphs = soup.find_all('h5')
-            entries_string=paragraphs[2].text.strip()
-            amount_entries=entries_string[0:2]
-            return amount_entries
+        if url != None: 
+            response = requests.get(url)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                paragraphs = soup.find_all('h5')
+                entries_string=paragraphs[2].text.strip()
+                amount_entries=entries_string[0:2]
+                return amount_entries
+            else:
+                return "Failed to retrieve the webpage"
         else:
-            return "Failed to retrieve the webpage"
-    def get_toc_points(self): 
+            return None
+    def get_toc_points(self,prog=None): 
         novice_entries=self.tabroom_get_entries(self.novice_url)
+        if prog != None:
+            prog.progress(66, text="Synthesizing Data...")
         print("Novice Entries : ", novice_entries)
         open_entries=self.tabroom_get_entries(self.open_url)
         print("Open Entries : ", open_entries)
-        afs=(int(novice_entries)+int(open_entries))/3
-        print("AFS "+str(afs))
-        for point in self.afs_place_points.keys():
-            try:
-                if point[0] <= afs <= point[1]:
-                    return self.afs_place_points[point]
-                else:
-                    continue 
-            except:
-                if point[0] <= afs :
-                    return self.afs_place_points[point]
-                else :
-                    print("No data found")
-                    break
-url="https://www.tabroom.com/index/tourn/index.mhtml?tourn_id=30494"
-#Url for NPDL NATIONALS AND NOVICE NATIONALS
-check=Calculate_Toc(url)
-print(check.get_toc_points())
+        if novice_entries == None:
+            return None
+        elif open_entries == None:
+            return None 
+        else :
+            afs=(int(novice_entries)+int(open_entries))/3
+            print("AFS "+str(afs))
+            for point in self.afs_place_points.keys():
+                try:
+                    if point[0] <= afs <= point[1]:
+                        return self.afs_place_points[point]
+                    else:
+                        continue 
+                except:
+                    if point[0] <= afs :
+                        return self.afs_place_points[point]
+                    else :
+                        print("No data found")
+                        break
+
 
 
 
